@@ -9,9 +9,6 @@ import Auth from 'components/Auth';
 import Layout from 'Layouts';
 import axios from 'axios';
 
-/*const dotenv = require('dotenv');
-dotenv.config({ path: '../../../env/.env' });*/
-
 const Input = styled(InputGroup)`
   margin-bottom: 2rem;
 `;
@@ -31,7 +28,7 @@ export default function Register() {
     //console.log(process.env.API_PHP);
     (data.get('password') !== data.get('passwordConfirm'))
       ? alert('Las contraseñas no coniciden')
-      : await axios.post(`https://api.xiimbah-mexikoo.com/lib/_users.php`, data)
+      : await axios.post(`https://connect.xiimbah-mexikoo.com/lib/_users.php`, data)
         .then((response) => {
           (response.data.success)
             ? Router.push('/auth/login')
@@ -55,10 +52,10 @@ export default function Register() {
             <input required type="email" placeholder="Email Address" id="email" name="email" />
           </Input>
           <Input fullWidth>
-            <input required type="password" placeholder="Password" id="password" name="password" />
+            <input required type="password" minLength={8} placeholder="Password" id="password" name="password" />
           </Input>
           <Input fullWidth>
-            <input required type="password" placeholder="Confirm Password" id="passwordConfirm" name="passwordConfirm" />
+            <input required type="password" minLength={8} placeholder="Confirm Password" id="passwordConfirm" name="passwordConfirm" />
           </Input>
           <Button status="Success" type="submit" shape="SemiRound" fullWidth>
             Register

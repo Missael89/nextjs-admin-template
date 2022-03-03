@@ -1,0 +1,302 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardBody, CardFooter } from '@paljs/ui/Card';
+import { InputGroup } from '@paljs/ui/Input';
+import Col from '@paljs/ui/Col';
+import Row from '@paljs/ui/Row';
+import { Button } from '@paljs/ui/Button';
+import styled from 'styled-components';
+import Layout from 'Layouts';
+import DataTable from 'react-data-table-component';
+import FilterComponent from '../extra-components/FilterComponent';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import axios from 'axios';
+import libI18N from '../../lib/i18n';
+import libTranslations from '../../lib/translations';
+import libLocale from '../../lib/locale';
+
+const Input = styled(InputGroup)`
+  margin-bottom: 10px;
+`;
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 500,
+};
+
+const styleActionButtonModal = {
+  marginRight: '20px'
+}
+
+const ServiceType = () => {
+  const localeES = 1;
+  const localeEN = 2;
+  let [serviceType, setServiceType] = useState([]);
+  let [id, setId] = useState();
+  let [name, setName] = useState('');
+  let [description, setDescription] = useState('');
+  let [i18nName, setI18nName] = useState();
+  let [i18nDescription, setI18nDescription] = useState();
+  let [nameTranslation, setNameTranslation] = useState();
+  let [descriptionTranslation, setDescriptionTranslation] = useState();
+  let [locale, setLocale] = useState();
+  let [reloadData, setReloadData] = useState(false);
+
+  const handleName = (event) => {
+    setName(event.target.value);
+  }
+
+  const handleDescription = (event) => {
+    setDescription(event.target.value);
+  }
+
+  const [filterText, setFilterText] = useState('');
+  const [resetPaginationToggle, setResetPaginationToggle] = React.useState(false);
+  const filteredItems = serviceType.filter(
+    item => item.nameIdentifier && item.nameIdentifier.toLowerCase().includes(filterText.toLowerCase()),
+  );
+
+  const [openEdit, setOpenEdit] = useState(false);
+  const handleCloseEdit = () => setOpenEdit(false);
+
+  const handleSumbitInsert = async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+
+    const jsonData = {
+      nameIdentifier: data.get('nameIdentifier'),
+      i18nName: {
+        id: await libI18N.insert()
+      },
+      i18nDescription: {
+        id: await libI18N.insert()
+      }
+    }
+
+    await axios.post('http://localhost:8080/api/serviceType/', jsonData)
+      .then((response) => {
+        if (response.data) {
+          libTranslations.insert(response.data.i18nName.id, localeES, data.get('nameIdentifier'));
+          libTranslations.insert(response.data.i18nDescription.id, localeES, data.get('description'));
+          event.target.reset();
+          setReloadData(true);
+        } else {
+          console.log(response.data);
+        }
+      }).catch((error) => console.log(error));
+  }
+
+  const handleSumbitUpdate = async (event) => {
+    event.preventDefault();
+    let json = {
+      id: id,
+      nameIdentifier: name,
+      i18nName: {
+        id: i18nName
+      },
+      i18nDescription: {
+        id: i18nDescription
+      }
+    }
+
+    if (locale == 1) {
+      await axios.post('http://localhost:8080/api/serviceType/', json)
+        .then((response) => {
+          if (response.data) {
+            translations();
+          } else {
+            console.log(response.data);
+          }
+        }).catch((error) => console.log(error));
+    } else {
+      translations();
+    }
+
+  }
+
+  const handleButtonDelete = async (event) => {
+    console.log(event);
+
+    /*await axios.delete(`http://localhost:8080/api//${event.id}`)
+      .then((res) => {
+        (res.status == 202) ? setReloadData(true) : console.log(res);
+      })
+      .catch((error) => console.log(error));*/
+  }
+
+  const handleButtonClickLocale = async (event, column) => {
+    let i18nName = event.i18nName.id;
+    let i18nDesc = event.i18nDescription.id;
+    setLocale(locale = await libLocale.get(column.name));
+    setName('');
+    setDescription('');
+    setId(event.id);
+    setI18nName(event.i18nName.id);
+    setI18nDescription(event.i18nDescription.id);
+    setOpenEdit(true);
+
+    const name = await libTranslations.getTranslation(i18nName, locale);
+    const description = await libTranslations.getTranslation(i18nDesc, locale);
+    (name.data.length > 0) ? (setName(name.data[0].text), setNameTranslation(name.data[0].id)) : (setName(''), setNameTranslation());
+    (description.data.length > 0) ? (setDescription(description.data[0].text), setDescriptionTranslation(description.data[0].id)) : setDescriptionTranslation();
+
+  }
+
+  function translations() {
+    libTranslations.insert(nameTranslation, i18nName, locale, name);
+    libTranslations.insert(descriptionTranslation, i18nDescription, locale, description);
+
+    setOpenEdit(false);
+    setReloadData(true);
+  }
+
+  const columns = useMemo(() => [
+    {
+      cell: (row, index, column, id) => <Button onClick={() => { handleButtonClickLocale(row, column) }} data-tag="allowRowEvents">Español</Button>,
+      allowOverflow: true,
+      button: true,
+      width: "150px",
+      name: "ES"
+    },
+    {
+      cell: (row, index, column, id) => <Button onClick={() => { handleButtonClickLocale(row, column) }} data-tag="allowRowEvents">English</Button>,
+      allowOverflow: true,
+      button: true,
+      width: "150px",
+      name: "EN"
+    },
+    {
+      cell: (row) => <Button status="Danger" onClick={() => handleButtonDelete(row)} data-tag="allowRowEvents">Delete</Button>,
+      allowOverflow: true,
+      button: true,
+      width: "150px"
+    },
+    {
+      name: 'Service Type',
+      selector: (row) => row.nameIdentifier,
+    }
+  ], []);
+
+  const subHeaderComponentMemo = useMemo(() => {
+    const handleClear = () => {
+      if (filterText) {
+        setResetPaginationToggle(!resetPaginationToggle);
+        setFilterText('');
+      }
+    };
+
+    return (
+      <FilterComponent onFilter={e => setFilterText(e.target.value)} onClear={handleClear} filterText={filterText} onFilterName={"Service"} />
+    );
+  }, [filterText, resetPaginationToggle]);
+
+  useEffect(() => {
+
+    async function getAllServiceType() {
+      await axios.get('http://localhost:8080/api/serviceType/')
+        .then((response) => {
+          if (response.data) {
+            let rows = response.data;
+
+            setServiceType(serviceType = rows);
+
+            /*rows.map((row, idx) => {
+              console.log(idx, row);
+            });*/
+
+          } else {
+            console.log(response.data);
+          }
+        }).catch((error) => console.log(error));
+    }
+    getAllServiceType();
+
+    setReloadData(false);
+
+  }, [reloadData]);
+
+  return (
+
+    <Layout title="Input">
+      <Row center="xs">
+        <Col breakPoint={{ xs: 12, md: 6 }}>
+          <form onSubmit={handleSumbitInsert}>
+            <Card>
+              <header>Add Service Type</header>
+              <CardBody>
+                <Input size="Small">
+                  <input type="text" placeholder="Tours/Car Rental/Transportation" name='nameIdentifier' id='nameIdentifier' required />
+                </Input>
+                <Input fullWidth size="Small">
+                  <input type="text" placeholder="Description" name='description' required />
+                </Input>
+              </CardBody>
+              <CardFooter>
+                <Button appearance={`outline`} status="Success" type="submit">
+                  Add
+                </Button>
+              </CardFooter>
+            </Card>
+          </form>
+        </Col>
+      </Row>
+      <Row>
+        <Col breakPoint={{ xs: 12 }}>
+          <Card>
+            <header>Services Type List</header>
+            <CardBody>
+              <DataTable
+                columns={columns}
+                data={filteredItems}
+                striped
+                pagination
+                responsive
+                paginationResetDefaultPage={resetPaginationToggle}
+                subHeader
+                subHeaderComponent={subHeaderComponentMemo}
+                persistTableHead
+              />
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
+      <Modal
+        open={openEdit}
+        onClose={handleCloseEdit}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <form onSubmit={handleSumbitUpdate}>
+            <Card>
+              <header>Edit Service Type</header>
+              <CardBody>
+                <Input size="Small">
+                  <input type="text" placeholder="Tours/Car Rental/Transportation" name='nameIdentifier' value={name} onChange={handleName} required />
+                </Input>
+                <Input fullWidth size="Small">
+                  <input type="text" placeholder="Description" name='description' value={description} onChange={handleDescription} required />
+                </Input>
+              </CardBody>
+              <CardFooter>
+                <Button appearance={`outline`} status="Success" type="submit" style={styleActionButtonModal}>
+                  Save
+                </Button>
+                <Button appearance={`outline`} status="Warning" type="button" onClick={handleCloseEdit}>
+                  Cancel
+                </Button>
+              </CardFooter>
+            </Card>
+          </form>
+        </Box>
+      </Modal>
+
+    </Layout>
+
+  );
+};
+export default ServiceType;

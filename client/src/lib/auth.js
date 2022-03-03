@@ -31,23 +31,18 @@ export async function login(event) {
     const data = new FormData(event.currentTarget);
     data.append('query', 'login');
 
-    const email = data.get("email");
-    const password = data.get("password");
-    const query = data.get("query");
-
-    await axios.post('http://localhost:3001/api/login', { email, password, query })
+    await axios.post('https://connect.xiimbah-mexikoo.com/lib/_users.php', data)
         .then((response) => {
             
             if (response.data.success) {
-                let array = response.data.user;
+                let userData = response.data.user;
+
                 setUser({
-                    ID: array[0].ID,
-                    FULL_NAME: array[0].FULL_NAME,
-                    EMAIL: array[0].EMAIL
-                }),
-                /*array.map((row, idx) => {
-                    console.log(idx, row);
-                });*/
+                    ID: userData.ID,
+                    FULL_NAME: userData.FULL_NAME,
+                    EMAIL: userData.EMAIL
+                }),                
+            
                 Router.push('/');
             } else {
                 console.log(response.data);

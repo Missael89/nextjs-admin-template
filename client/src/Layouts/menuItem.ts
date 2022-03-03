@@ -2,7 +2,7 @@ import { MenuItemType } from '@paljs/ui/types';
 
 const items: MenuItemType[] = [
   {
-    title: 'Home Page',
+    title: 'Dashboard',
     icon: { name: 'home' },
     link: { href: '/dashboard' },
   },
@@ -12,7 +12,6 @@ const items: MenuItemType[] = [
   },
   {
     title: 'Administración',
-    icon: { name: 'star-outline' },
     children: [
       {
         title: 'Alianzas',
@@ -22,7 +21,6 @@ const items: MenuItemType[] = [
   },
   {
     title: 'Catálogos',
-    icon: { name: 'star-outline' },
     children: [
       {
         title: 'Localización',
@@ -30,7 +28,15 @@ const items: MenuItemType[] = [
       },
       {
         title: 'Tipo de Servicio',
-        link: { href: '/cataogues/service-type' },
+        link: { href: '/catalogues/serviceType' },
+      },
+      {
+        title: 'Iconos',
+        link: { href: '/catalogues/icons' },
+      },
+      {
+        title: 'Marcas de Autos',
+        link: { href: '/catalogues/carBrand' },
       }
     ]
   },
