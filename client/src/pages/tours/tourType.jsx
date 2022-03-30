@@ -31,17 +31,12 @@ const styleActionButtonModal = {
   marginRight: '20px'
 }
 
-const ServiceType = () => {
-  const localeES = 1;
-  const localeEN = 2;
-  let [serviceType, setServiceType] = useState([]);
+const TourType = () => {
+  let [tourType, setTourType] = useState([]);
   let [id, setId] = useState();
   let [name, setName] = useState('');
-  let [description, setDescription] = useState('');
   let [i18nName, setI18nName] = useState();
-  let [i18nDescription, setI18nDescription] = useState();
   let [nameTranslation, setNameTranslation] = useState();
-  let [descriptionTranslation, setDescriptionTranslation] = useState();
   let [locale, setLocale] = useState();
   let [reloadData, setReloadData] = useState(false);
 
@@ -49,14 +44,10 @@ const ServiceType = () => {
     setName(event.target.value);
   }
 
-  const handleDescription = (event) => {
-    setDescription(event.target.value);
-  }
-
   const [filterText, setFilterText] = useState('');
   const [resetPaginationToggle, setResetPaginationToggle] = React.useState(false);
-  const filteredItems = serviceType.filter(
-    item => item.nameIdentifier && item.nameIdentifier.toLowerCase().includes(filterText.toLowerCase()),
+  const filteredItems = tourType.filter(
+    item => item[5] && item[5].toLowerCase().includes(filterText.toLowerCase()),
   );
 
   const [openEdit, setOpenEdit] = useState(false);
@@ -65,90 +56,58 @@ const ServiceType = () => {
   const handleSumbitInsert = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-
     const jsonData = {
-      nameIdentifier: data.get('nameIdentifier'),
       i18nName: {
-        id: await libI18N.insert()
-      },
-      i18nDescription: {
         id: await libI18N.insert()
       }
     }
 
-    await axios.post('http://localhost:8080/api/serviceType/', jsonData)
+    await axios.post('http://localhost:8080/api/tourType/', jsonData)
       .then((response) => {
         if (response.data) {
-          libTranslations.insert(null, response.data.i18nName.id, localeES, data.get('nameIdentifier'));
-          libTranslations.insert(null, response.data.i18nDescription.id, localeES, data.get('description'));
+          libTranslations.insert(null, response.data.i18nName.id, 1, data.get('name'));
           event.target.reset();
           setReloadData(true);
         } else {
           console.log(response.data);
         }
       }).catch((error) => console.log(error));
+    
   }
 
   const handleSumbitUpdate = async (event) => {
     event.preventDefault();
-    let json = {
-      id: id,
-      nameIdentifier: name,
-      i18nName: {
-        id: i18nName
-      },
-      i18nDescription: {
-        id: i18nDescription
-      }
-    }
-
-    if (locale == 1) {
-      await axios.post('http://localhost:8080/api/serviceType/', json)
-        .then((response) => {
-          if (response.data) {
-            translations();
-          } else {
-            console.log(response.data);
-          }
-        }).catch((error) => console.log(error));
-    } else {
-      translations();
-    }
-
+    translations();
+    setReloadData(true);
   }
 
   const handleButtonDelete = async (event) => {
     console.log(event);
-
-    /*await axios.delete(`http://localhost:8080/api//${event.id}`)
-      .then((res) => {
-        (res.status == 202) ? setReloadData(true) : console.log(res);
-      })
-      .catch((error) => console.log(error));*/
   }
 
   const handleButtonClickLocale = async (event, column) => {
-    let i18nName = event.i18nName.id;
-    let i18nDesc = event.i18nDescription.id;
+    let i18nName = event[3];
     setLocale(locale = await libLocale.get(column.name));
     setName('');
-    setDescription('');
-    setId(event.id);
-    setI18nName(event.i18nName.id);
-    setI18nDescription(event.i18nDescription.id);
+    setId(event[0]);
+    setI18nName(event[1]);
     setOpenEdit(true);
 
+    setName(event[5]);
+
+    /* Get Traduction */
     const name = await libTranslations.getTranslation(i18nName, locale);
-    const description = await libTranslations.getTranslation(i18nDesc, locale);
-    (name.data.length > 0) ? (setName(name.data[0].text), setNameTranslation(name.data[0].id)) : (setName(''), setNameTranslation());
-    (description.data.length > 0) ? (setDescription(description.data[0].text), setDescriptionTranslation(description.data[0].id)) : setDescriptionTranslation();
+
+    if(name.data.length > 0) {
+      (setName(name.data[0].text), setNameTranslation(name.data[0].id))
+    } else {
+      (setName(''), setNameTranslation());
+    }
 
   }
 
   function translations() {
     libTranslations.insert(nameTranslation, i18nName, locale, name);
-    libTranslations.insert(descriptionTranslation, i18nDescription, locale, description);
-
     setOpenEdit(false);
     setReloadData(true);
   }
@@ -175,8 +134,8 @@ const ServiceType = () => {
       width: "150px"
     },
     {
-      name: 'Service Type',
-      selector: (row) => row.nameIdentifier,
+      name: 'Tour Type',
+      selector: (row) => row[5],
     }
   ], []);
 
@@ -189,19 +148,19 @@ const ServiceType = () => {
     };
 
     return (
-      <FilterComponent onFilter={e => setFilterText(e.target.value)} onClear={handleClear} filterText={filterText} onFilterName={"Service"} />
+      <FilterComponent onFilter={e => setFilterText(e.target.value)} onClear={handleClear} filterText={filterText} onFilterName={"Tour Type"} />
     );
   }, [filterText, resetPaginationToggle]);
 
   useEffect(() => {
 
-    async function getAllServiceType() {
-      await axios.get('http://localhost:8080/api/serviceType/')
+    async function getAll() {
+      await axios.get('http://localhost:8080/api/allToursType/')
         .then((response) => {
           if (response.data) {
             let rows = response.data;
 
-            setServiceType(serviceType = rows);
+            setTourType(tourType = rows);
 
             /*rows.map((row, idx) => {
               console.log(idx, row);
@@ -212,7 +171,7 @@ const ServiceType = () => {
           }
         }).catch((error) => console.log(error));
     }
-    getAllServiceType();
+    getAll();
 
     setReloadData(false);
 
@@ -225,13 +184,10 @@ const ServiceType = () => {
         <Col breakPoint={{ xs: 12, md: 6 }}>
           <form onSubmit={handleSumbitInsert}>
             <Card>
-              <header>Add Service Type</header>
+              <header>Add Tour Type</header>
               <CardBody>
-                <Input size="Small">
-                  <input type="text" placeholder="Tours/Car Rental/Transportation" name='nameIdentifier' id='nameIdentifier' required />
-                </Input>
-                <Input fullWidth size="Small">
-                  <input type="text" placeholder="Description" name='description' required />
+                <Input fullWidth>
+                  <input type="text" placeholder="Ground Tour" name='name' id='name' required />
                 </Input>
               </CardBody>
               <CardFooter>
@@ -246,7 +202,7 @@ const ServiceType = () => {
       <Row>
         <Col breakPoint={{ xs: 12 }}>
           <Card>
-            <header>Services Type List</header>
+            <header>Tour Type List</header>
             <CardBody>
               <DataTable
                 columns={columns}
@@ -273,13 +229,10 @@ const ServiceType = () => {
         <Box sx={style}>
           <form onSubmit={handleSumbitUpdate}>
             <Card>
-              <header>Edit Service Type</header>
+              <header>Edit Tour Type</header>
               <CardBody>
-                <Input size="Small">
-                  <input type="text" placeholder="Tours/Car Rental/Transportation" name='nameIdentifier' value={name} onChange={handleName} required />
-                </Input>
-                <Input fullWidth size="Small">
-                  <input type="text" placeholder="Description" name='description' value={description} onChange={handleDescription} required />
+                <Input fullWidth>
+                  <input type="text" placeholder="Tour por Tierra" name='nameIdentifier' value={name} onChange={handleName} required />
                 </Input>
               </CardBody>
               <CardFooter>
@@ -299,4 +252,4 @@ const ServiceType = () => {
 
   );
 };
-export default ServiceType;
+export default TourType;

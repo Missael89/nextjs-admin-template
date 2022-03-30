@@ -35,8 +35,59 @@ const items: MenuItemType[] = [
         link: { href: '/catalogues/icons' },
       },
       {
-        title: 'Marcas de Autos',
-        link: { href: '/catalogues/carBrand' },
+        title: 'Incluye',
+        link: { href: '/catalogues/includes' },
+      },
+      {
+        title: 'Recomendaciones',
+        link: { href: '/catalogues/recommendations' },
+      }
+    ]
+  },
+  {
+    title: 'Tours',
+    children: [
+      {
+        title: 'Tipo',
+        link: { href: '/tours/tourType' },
+      },
+      {
+        title: 'Categoria',
+        link: { href: '/tours/tourCategory' },
+      }
+    ]
+  },
+  {
+    title: 'Transportación',
+    children: [
+      {
+        title: 'Tipo',
+        link: { href: '/transportation/transportationType' },
+      },
+      {
+        title: 'Servicio Abierto',
+        link: { href: '/transportation/bookingOpenService' },
+      }
+    ]
+  },
+  {
+    title: 'Renta de Autos',
+    children: [
+      {
+        title: 'Tipo',
+        link: { href: '/carRental/carRentalType' },
+      },
+      {
+        title: 'Marcas',
+        link: { href: '/carRental/carBrand' },
+      },
+      {
+        title: 'Transmisión',
+        link: { href: '/carRental/carEngine' },
+      },
+      {
+        title: 'Locaciones',
+        link: { href: '/carRental/carRentalLocations' },
       }
     ]
   },

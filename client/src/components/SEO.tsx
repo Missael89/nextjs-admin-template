@@ -1,9 +1,10 @@
 import React from 'react';
 import Head from 'next/head';
+import Script from 'next/script';
 
 const SEO: React.FC<SEOProps> = ({ description, keywords, title }) => (
   <Head>
-    <title>{title} | Next.Js free admin react template</title>
+    <title>{title} | Xiimbah Mexikoo Admin</title>
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords?.join(', ')} />
     <meta property="og:type" content="website" />
@@ -20,8 +21,8 @@ const SEO: React.FC<SEOProps> = ({ description, keywords, title }) => (
     <meta property="og:image" content="" />
     <link rel="icon" type="image/png" href="/icons/icon-72x72.png" />
     <link rel="apple-touch-icon" type="image/png" href="/icons/icon-72x72.png" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-171177495-4"></script>
-    <script
+    <Script async src="https://www.googletagmanager.com/gtag/js?id=UA-171177495-4"></Script>
+    <Script
       dangerouslySetInnerHTML={{
         __html: `
             window.dataLayer = window.dataLayer || [];
